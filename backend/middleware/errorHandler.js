@@ -45,7 +45,11 @@ const errorHandler = (err, req, res, next) => {
   }
   
   const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  
+  // Never leak internal error messages in production for 500 errors
+  const message = statusCode >= 500
+    ? (process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error')
+    : (err.message || 'An error occurred');
   
   res.status(statusCode).json({
     success: false,

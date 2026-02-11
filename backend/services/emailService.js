@@ -125,7 +125,13 @@ class EmailService {
   }
 
   convertToHtml(text) {
-    return text
+    // Sanitize HTML entities first to prevent injection
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    return escaped
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>')
       .replace(/^/, '<p>')

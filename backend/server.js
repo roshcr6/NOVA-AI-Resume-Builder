@@ -4,12 +4,23 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
 const path = require('path');
+const fs = require('fs');
 
 const connectDB = require('./config/database');
 const { sessionMiddleware, errorHandler } = require('./middleware');
 const { resumeRoutes, analysisRoutes, jobRoutes, sessionRoutes } = require('./routes');
 const { emailService } = require('./services');
+
+// ── Startup environment validation ──
+const requiredEnvVars = ['MONGODB_URI'];
+const missingVars = requiredEnvVars.filter(v => !process.env[v]);
+if (missingVars.length > 0) {
+  console.error(`FATAL: Missing required environment variables: ${missingVars.join(', ')}`);
+  console.error('Please check your .env file.');
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,12 +30,17 @@ app.use(helmet({
 }));
 
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL  // Strict: must be set in production
+    : (process.env.FRONTEND_URL || 'http://localhost:5173'),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id']
 };
 app.use(cors(corsOptions));
+
+// HTTP Parameter Pollution protection
+app.use(hpp());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -51,10 +67,45 @@ app.use('/api/resume/:resumeId/edit', aiLimiter);
 app.use('/api/analysis/analyze', aiLimiter);
 app.use('/api/analysis/fix', aiLimiter);
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Stricter rate limit for file uploads (prevent disk exhaustion)
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: {
+    success: false,
+    error: 'Too many uploads. Please try again later.'
+  }
+});
+app.use('/api/analysis/analyze', uploadLimiter);
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+// ── Authenticated file serving ──
+// Files are served only after verifying session ownership
+const { Session } = require('./models');
+app.use('/uploads', async (req, res, next) => {
+  try {
+    const sessionId = req.headers['x-session-id'];
+    if (!sessionId) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    // Validate session exists
+    const session = await Session.findOne({ sessionId });
+    if (!session) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    // Prevent path traversal
+    const requestedPath = path.resolve(path.join(__dirname, 'uploads', req.path));
+    const uploadsDir = path.resolve(path.join(__dirname, 'uploads'));
+    if (!requestedPath.startsWith(uploadsDir)) {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+    next();
+  } catch (err) {
+    return res.status(500).json({ success: false, error: 'Server error' });
+  }
+}, express.static(path.join(__dirname, 'uploads')));
 
 app.get('/api/health', (req, res) => {
   res.json({

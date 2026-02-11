@@ -6,6 +6,7 @@ const { geminiService, githubService, pdfService } = require('../services');
 const { validate } = require('../middleware');
 const path = require('path');
 const fs = require('fs');
+const fsPromises = require('fs').promises;
 
 const generateValidation = [
   body('source').isIn(['github', 'manual', 'linkedin']).withMessage('Source must be github, manual, or linkedin'),
@@ -388,9 +389,7 @@ router.delete('/:resumeId', async (req, res, next) => {
 
     if (resume.pdfPath) {
       const pdfPath = path.join(__dirname, '..', resume.pdfPath);
-      if (fs.existsSync(pdfPath)) {
-        fs.unlinkSync(pdfPath);
-      }
+      try { await fsPromises.unlink(pdfPath); } catch (e) { /* file may not exist */ }
     }
 
     await Resume.deleteOne({ _id: resumeId });
@@ -420,9 +419,7 @@ router.post('/:resumeId/regenerate-pdf', async (req, res, next) => {
 
     if (resume.pdfPath) {
       const oldPdfPath = path.join(__dirname, '..', resume.pdfPath);
-      if (fs.existsSync(oldPdfPath)) {
-        fs.unlinkSync(oldPdfPath);
-      }
+      try { await fsPromises.unlink(oldPdfPath); } catch (e) { /* file may not exist */ }
     }
 
     const pdfResult = await pdfService.generateResumePDF(resume.structuredData);

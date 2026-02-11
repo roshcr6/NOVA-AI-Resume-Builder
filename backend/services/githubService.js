@@ -5,6 +5,7 @@ class GitHubService {
     this.baseUrl = 'https://api.github.com';
     this.cache = new Map();
     this.cacheTimeout = 60 * 60 * 1000; // 1 hour cache
+    this.maxCacheSize = 100; // Prevent unbounded memory growth
     
     // Build headers with optional token
     const headers = {
@@ -34,6 +35,11 @@ class GitHubService {
   }
 
   setCache(key, data) {
+    // Evict oldest entries if cache is full
+    if (this.cache.size >= this.maxCacheSize) {
+      const oldestKey = this.cache.keys().next().value;
+      this.cache.delete(oldestKey);
+    }
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 

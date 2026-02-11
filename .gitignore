@@ -71,9 +71,9 @@ coverage/
 # Vite
 *.local
 
-# Uploads (user generated content)
-backend/uploads/resume_*.pdf
-backend/uploads/generated/*.pdf
+# Uploads (user generated content — contains PII)
+backend/uploads/*.pdf
+backend/uploads/**/*.pdf
 
 # Keep upload directories structure
 !backend/uploads/.gitkeep

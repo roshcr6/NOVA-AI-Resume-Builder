@@ -6,6 +6,7 @@ class JobScraperService {
     this.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
     this.cache = new Map();
     this.cacheTimeout = 10 * 60 * 1000; // 10 minutes
+    this.maxCacheSize = 50; // Prevent unbounded memory growth
   }
 
   getCacheKey(query) {
@@ -21,6 +22,11 @@ class JobScraperService {
   }
 
   setCachedResults(key, data) {
+    // Evict oldest entries if cache is full
+    if (this.cache.size >= this.maxCacheSize) {
+      const oldestKey = this.cache.keys().next().value;
+      this.cache.delete(oldestKey);
+    }
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 

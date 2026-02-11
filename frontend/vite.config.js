@@ -18,6 +18,6 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: false  // Disabled in production to prevent source code exposure
   }
 });
