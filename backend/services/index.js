@@ -1,5 +1,5 @@
-// Using Ollama instead of Gemini for AI features
-const geminiService = require('./ollamaService');
+// Using Gemini for AI features in production
+const geminiService = require('./geminiService');
 const githubService = require('./githubService');
 const pdfService = require('./pdfTemplateService'); // Using template-based PDF generation
 const jobService = require('./jobService');
