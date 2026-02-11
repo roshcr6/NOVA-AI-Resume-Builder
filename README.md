@@ -4,6 +4,13 @@ A complete, production-ready platform for building professional resumes with AI,
 
 ![NOVA Banner](https://via.placeholder.com/1200x400/2563eb/ffffff?text=NOVA+-+AI+Resume+Builder)
 
+## 🚀 Quick Deploy
+
+[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/nova-resume)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/yourusername/nova-resume)
+
+📖 **[Full Deployment Guide](./DEPLOYMENT.md)** | ✅ **[Deployment Checklist](./DEPLOYMENT_CHECKLIST.md)**
+
 ## Features
 
 ### 📝 AI Resume Builder
@@ -219,28 +226,49 @@ VITE_API_URL=/api
 | GET | `/api/session/profile` | Get full profile |
 | DELETE | `/api/session/data` | Delete all user data |
 
-## Deployment
+## 🌐 Deployment
 
-### Backend Deployment (Render)
+Deploy NOVA to the internet for **FREE** using industry-standard platforms!
 
-1. Create account at https://render.com
-2. Create new Web Service
-3. Connect your GitHub repository
-4. Configure:
-   - Build Command: `cd backend && npm install`
-   - Start Command: `cd backend && npm start`
-5. Add environment variables
-6. Deploy
+### 📖 Complete Deployment Guide
 
-### Frontend Deployment (Vercel)
+**👉 [Full Step-by-Step Deployment Instructions](./DEPLOYMENT.md)**
 
-1. Create account at https://vercel.com
-2. Import your GitHub repository
-3. Configure:
-   - Framework Preset: Vite
-   - Root Directory: `frontend`
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
+**Recommended Stack (100% Free):**
+- **Database**: MongoDB Atlas (Free M0 - 512MB)
+- **Backend**: Render (Free tier - 750hrs/month)
+- **Frontend**: Vercel (Free - Unlimited bandwidth)
+
+### Quick Start
+
+1. **Setup MongoDB Atlas**
+   - Create free cluster at https://mongodb.com/atlas
+   - Get connection string
+   - Whitelist all IPs (0.0.0.0/0)
+
+2. **Deploy Backend to Render**
+   - Connect GitHub repo
+   - Root directory: `backend`
+   - Add environment variables (MONGODB_URI, GEMINI_API_KEY, etc.)
+   - Deploy
+
+3. **Deploy Frontend to Vercel**
+   - Import GitHub repo
+   - Root directory: `frontend`
+   - Add `VITE_API_URL` environment variable
+   - Deploy
+
+4. **Update CORS**
+   - Update `FRONTEND_URL` in Render with your Vercel URL
+   - Redeploy backend
+
+### Alternative Platforms
+
+- **Backend**: Railway, Heroku, DigitalOcean, AWS
+- **Frontend**: Netlify, GitHub Pages, Cloudflare Pages
+- **Database**: MongoDB Atlas, MongoDB Cloud
+
+**📋 [Print-Friendly Deployment Checklist](./DEPLOYMENT_CHECKLIST.md)**
 4. Add environment variable:
    - `VITE_API_URL`: Your Render backend URL + `/api`
 5. Deploy
